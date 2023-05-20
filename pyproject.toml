@@ -1,0 +1,207 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[project]
+authors = [
+  {name = "Shinsuke Mori", email = "sincekmori@gmail.com"},
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: AsyncIO",
+  "Framework :: Hatch",
+  "Framework :: Pytest",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Topic :: Communications :: Chat",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "httpx[http2]>=0.24.0",
+  "pydantic>=1.10.7",
+]
+description = "Unofficial Python client library for the OpenAI and Azure OpenAI APIs"
+dynamic = ["version"]
+keywords = ["openai", "azure", "chatgpt", "gpt", "gpt-3", "gpt-4", "asyncio", "pydantic"]
+license = "MIT"
+name = "gpru"
+readme = "README.md"
+requires-python = ">=3.7"
+
+[project.urls]
+Documentation = "https://github.com/sincekmori/gpru#readme"
+Issues = "https://github.com/sincekmori/gpru/issues"
+Source = "https://github.com/sincekmori/gpru"
+
+[tool.hatch.build.targets.sdist]
+packages = ["src/gpru"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gpru"]
+
+[tool.hatch.version]
+path = "src/gpru/__init__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]",
+  "datamodel-code-generator[http]<0.18", # https://docs.pydantic.dev/latest/datamodel_code_generator/
+  "pre-commit",
+  "pytest",
+]
+
+[tool.hatch.envs.default.scripts]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+gen-model = "datamodel-codegen --openapi-scopes=schemas --snake-case-field --use-schema-description --use-field-description --reuse-model --capitalise-enum-members --use-subclass-enum --target-python-version=3.7 --wrap-string-literal --output=models.py {args:}"
+pc-run = "pre-commit run --all-files"
+pc-update = "pre-commit autoupdate"
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+
+[[tool.hatch.envs.all.matrix]]
+# If you are using pyenv, just run `pyenv global 3.7 3.8 3.9 3.10 3.11` beforehand.
+python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
+[tool.hatch.envs.docs]
+dependencies = [
+  "mkdocs",
+]
+detached = true
+python = "3.11"
+
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build --clean --strict"
+serve = "mkdocs serve"
+
+[tool.hatch.envs.lint]
+dependencies = [
+  "black",
+  "docformatter[tomli]",
+  "isort",
+  "mypy",
+  "pydantic",
+  "pytest",
+  "ruff",
+]
+detached = true
+python = "3.11"
+
+[tool.hatch.envs.lint.scripts]
+check = [
+  "black --check --diff {args:.}",
+  "isort --check {args:.}",
+  "docformatter {args:--check .}",
+  "ruff {args:.}",
+  "typing",
+]
+format = [
+  "black {args:.}",
+  "isort {args:.}",
+  "docformatter {args:--in-place .}",
+  "ruff --fix {args:.}",
+  "typing",
+]
+typing = [
+  "mypy --install-types --non-interactive {args:examples src tests}",
+]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source_pkgs = ["gpru"]
+
+[tool.coverage.paths]
+gpru = ["src/gpru", "*/gpru/src/gpru"]
+tests = ["tests", "*/gpru/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  "ignore:::gpru",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py37", "py38", "py39", "py310", "py311"]
+
+[tool.docformatter]
+close-quotes-on-newline = true
+in-place = true
+pre-summary-newline = true
+recursive = true
+wrap-descriptions = 88
+wrap-summaries = 88
+
+[tool.isort]
+include_trailing_comma = true
+line_length = 88
+multi_line_output = 3
+profile = "black"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"] # https://docs.pydantic.dev/latest/mypy_plugin/#enabling-the-plugin
+strict = true
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = "httpx.*"
+
+[tool.ruff]
+ignore = [
+  "D10", # TODO: write docstrings and remove this line
+  "D200",
+  "D205",
+  "ANN",
+  "S101",
+  "FBT",
+  "A",
+  "COM",
+  "FA100",
+  "G004",
+  "INP",
+  "ERA",
+  "PLR2004",
+  "TRY300",
+]
+line-length = 88
+select = ["ALL"]
+target-version = "py37"
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.isort]
+known-first-party = ["gpru"]
+
+[tool.ruff.mccabe]
+max-complexity = 5
+
+[tool.ruff.per-file-ignores]
+"examples/**/*" = ["T201"]
+"examples/openai/*_audio.py" = ["E501"]
+"tests/**/*" = ["D10"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
