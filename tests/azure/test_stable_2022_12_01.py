@@ -7,7 +7,7 @@ from gpru.exceptions import ApiError
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
 api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+api = AzureOpenAiApi(endpoint, api_key, timeout=30)
 
 
 def test_models() -> None:
