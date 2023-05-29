@@ -3,8 +3,8 @@ import os
 from gpru.azure.preview_2022_03_01 import AzureOpenAiApi, FineTuneRequest
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 req = FineTuneRequest(
     model="curie", training_file="file-181a1cbdcdcf4677ada87f63a0928099"

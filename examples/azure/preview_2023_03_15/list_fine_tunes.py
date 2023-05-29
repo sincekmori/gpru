@@ -3,11 +3,11 @@ import os
 from gpru.azure.preview_2023_03_15 import AzureOpenAiApi
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
-fine_tunes = api.list_fine_tunes()
-print(fine_tunes.json(indent=2))
+fine_tune_list = api.list_fine_tunes()
+print(fine_tune_list.json(indent=2))
 # Example output:
 # {
 #   "object": "list",

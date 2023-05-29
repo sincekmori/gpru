@@ -66,7 +66,7 @@ cov = [
 ]
 cov-report = [
   "- coverage combine",
-  "coverage report",
+  "coverage report --show-missing",
 ]
 gen-model = "datamodel-codegen --openapi-scopes=schemas --snake-case-field --use-schema-description --use-field-description --reuse-model --capitalise-enum-members --use-subclass-enum --target-python-version=3.7 --wrap-string-literal --output=models.py {args:}"
 pc-run = "pre-commit run --all-files"

@@ -3,8 +3,8 @@ import os
 from gpru.azure.stable_2022_12_01 import AzureOpenAiApi
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 deployment = api.get_deployment("deployment-afa0669ca01e4693ae3a93baf40f26d6")
 print(deployment.json(indent=2))

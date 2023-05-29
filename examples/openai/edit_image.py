@@ -3,8 +3,8 @@ from pathlib import Path
 
 from gpru.openai.api import ImageEditing, OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key, timeout=60)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key, timeout=60)
 
 image_editing = ImageEditing(
     image=Path("/path/to/sunlit_lounge.png"),
@@ -12,8 +12,8 @@ image_editing = ImageEditing(
     prompt="A sunlit indoor lounge area with a pool containing a flamingo",
     n=2,
 )
-images = api.edit_image(image_editing)
-print(images.json(indent=2))
+image_list = api.edit_image(image_editing)
+print(image_list.json(indent=2))
 # Example output:
 # {
 #   "created": 1683647288,

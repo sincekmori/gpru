@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import ChatCompletionRequest, OpenAiApi, UserMessage
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 req = ChatCompletionRequest(
     model="gpt-3.5-turbo",

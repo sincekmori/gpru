@@ -3,8 +3,8 @@ from pathlib import Path
 
 from gpru.openai.api import OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key, timeout=60)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key, timeout=60)
 
 file = api.upload_file(file=Path("/path/to/mydata.jsonl"), purpose="fine-tune")
 print(file.json(indent=2))

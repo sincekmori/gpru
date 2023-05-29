@@ -3,8 +3,8 @@ import os
 from gpru.azure.stable_2023_05_15 import AzureOpenAiApi
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 fine_tune_event_list = api.list_fine_tune_events("ft-72a2792ef7d24ba7b82c7fe4a37e379f")
 print(fine_tune_event_list.json(indent=2))  # type: ignore[union-attr]

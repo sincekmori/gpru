@@ -3,8 +3,8 @@ import os
 from gpru.azure.preview_2023_03_15 import AzureOpenAiApi, ScaleSettings, ScaleType
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 deployment_id = "deployment-afa0669ca01e4693ae3a93baf40f26d6"
 scale_settings = ScaleSettings(capacity=1, scale_type=ScaleType.MANUAL)

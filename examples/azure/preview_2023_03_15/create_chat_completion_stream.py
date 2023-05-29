@@ -7,9 +7,9 @@ from gpru.azure.preview_2023_03_15 import (
 )
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
+key = os.environ["AZURE_OPENAI_API_KEY"]
 deployment_id = os.environ["AZURE_OPENAI_API_DEPLOYMENT_ID"]
-api = AzureOpenAiApi(endpoint, api_key)
+api = AzureOpenAiApi(endpoint, key)
 
 req = ChatCompletionRequest(messages=[UserMessage("Hello!")], stream=True)
 for chat_completion in api.create_chat_completion(deployment_id, req):

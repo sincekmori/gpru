@@ -3,8 +3,8 @@ from pathlib import Path
 
 from gpru.openai.api import OpenAiApi, TranscriptionRequest
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key, timeout=60)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key, timeout=60)
 
 req = TranscriptionRequest(file=Path("/path/to/audio.wav"), model="whisper-1")
 transcription = api.transcribe_audio(req)

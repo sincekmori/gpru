@@ -3,8 +3,8 @@ import os
 from gpru.azure.preview_2022_03_01 import AzureOpenAiApi, Purpose
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 file = api.import_file(
     "https://www.contoso.com/trainingdata/puppy.jsonl",

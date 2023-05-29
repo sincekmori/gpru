@@ -1056,7 +1056,7 @@ class AzureOpenAiApi(Api):
     def __init__(
         self,
         endpoint: str,
-        api_key: Optional[str] = None,
+        key: Optional[str] = None,
         ad_token: Optional[str] = None,
         timeout: Optional[TimeoutTypes] = DEFAULT_TIMEOUT_CONFIG,
     ) -> None:
@@ -1065,13 +1065,13 @@ class AzureOpenAiApi(Api):
 
         Notes
         -----
-        Either `api_key` or `ad_token` is required.
+        Either `key` or `ad_token` is required.
 
         Parameters
         ----------
         endpoint : str
             URL in the form of `"https://{your-resource-name}.openai.azure.com/"`
-        api_key : Optional[str]
+        key : Optional[str]
             Secret key for the Azure OpenAI API.
         ad_token : Optional[str]
             Azure Active Directory token.
@@ -1089,14 +1089,14 @@ class AzureOpenAiApi(Api):
         --------
         >>> import os
         >>> endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-        >>> api_key = os.environ["AZURE_OPENAI_API_KEY"]
-        >>> api = AzureOpenAiApi(endpoint, api_key)
+        >>> key = os.environ["AZURE_OPENAI_API_KEY"]
+        >>> api = AzureOpenAiApi(endpoint, key)
         """
         super().__init__(
             ErrorResponse,
             endpoint,
             "2023-05-15",
-            api_key,
+            key,
             ad_token,
             timeout,
         )

@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 
 fine_tune = api.get_fine_tune(fine_tune_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F")
