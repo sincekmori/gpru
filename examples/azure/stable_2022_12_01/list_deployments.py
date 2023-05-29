@@ -6,8 +6,8 @@ endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
 api_key = os.environ["AZURE_OPENAI_API_KEY"]
 api = AzureOpenAiApi(endpoint, api_key)
 
-deployments = api.list_deployments()
-print(deployments.json(indent=2))
+deployment_list = api.list_deployments()
+print(deployment_list.json(indent=2))
 # Example output:
 # {
 #   "object": "list",

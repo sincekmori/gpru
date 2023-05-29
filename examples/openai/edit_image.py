@@ -12,8 +12,8 @@ image_editing = ImageEditing(
     prompt="A sunlit indoor lounge area with a pool containing a flamingo",
     n=2,
 )
-images = api.edit_image(image_editing)
-print(images.json(indent=2))
+image_list = api.edit_image(image_editing)
+print(image_list.json(indent=2))
 # Example output:
 # {
 #   "created": 1683647288,
