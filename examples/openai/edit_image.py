@@ -3,8 +3,8 @@ from pathlib import Path
 
 from gpru.openai.api import ImageEditing, OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key, timeout=60)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key, timeout=60)
 
 image_editing = ImageEditing(
     image=Path("/path/to/sunlit_lounge.png"),

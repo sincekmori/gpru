@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import EditRequest, OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 req = EditRequest(
     model="text-davinci-edit-001",

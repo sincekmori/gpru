@@ -8,8 +8,8 @@ from gpru.azure.stable_2022_12_01 import (
 )
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 deployment = Deployment(
     model="curie",

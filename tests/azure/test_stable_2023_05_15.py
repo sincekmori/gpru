@@ -7,8 +7,8 @@ from gpru.exceptions import ApiError
 
 PREFIX = "AZURE_OPENAI_API"
 endpoint = os.environ[f"{PREFIX}_ENDPOINT"]
-api_key = os.environ[f"{PREFIX}_KEY"]
-api = AzureOpenAiApi(endpoint, api_key, timeout=30)
+key = os.environ[f"{PREFIX}_KEY"]
+api = AzureOpenAiApi(endpoint, key, timeout=30)
 
 
 def test_models() -> None:

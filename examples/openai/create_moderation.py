@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import ModerationRequest, OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 req = ModerationRequest(input="I want to kill them.")
 moderation = api.create_moderation(req)

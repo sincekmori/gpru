@@ -13,13 +13,13 @@ class Api:
         error_response_model: Type[T],
         endpoint: str,
         api_version: str,
-        api_key: Optional[str] = None,
+        key: Optional[str] = None,
         ad_token: Optional[str] = None,
         timeout: Optional[TimeoutTypes] = DEFAULT_TIMEOUT_CONFIG,
     ) -> None:
         client_kwargs = {
             "params": {"api-version": api_version},
-            "headers": self._build_base_headers(api_key, ad_token),
+            "headers": self._build_base_headers(key, ad_token),
             "http2": True,
             "base_url": f"{endpoint}openai"
             if endpoint.endswith("/")
@@ -30,16 +30,16 @@ class Api:
         self._stream = stream_factory(error_response_model, **client_kwargs)
 
     def _build_base_headers(
-        self, api_key: Optional[str], ad_token: Optional[str]
+        self, key: Optional[str], ad_token: Optional[str]
     ) -> Dict[str, str]:
-        both_none: bool = api_key is None and ad_token is None
-        both_not_none: bool = api_key is not None and ad_token is not None
+        both_none: bool = key is None and ad_token is None
+        both_not_none: bool = key is not None and ad_token is not None
         if both_none or both_not_none:
-            msg = "Either `api_key` or `ad_token` is required."
+            msg = "Either `key` or `ad_token` is required."
             raise InvalidConfigError(msg)
 
         return (
-            {"api-key": api_key}
-            if api_key is not None
+            {"api-key": key}
+            if key is not None
             else {"Authorization": f"Bearer {ad_token}"}
         )

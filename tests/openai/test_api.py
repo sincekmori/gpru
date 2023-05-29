@@ -5,8 +5,8 @@ import pytest
 from gpru.exceptions import ApiError
 from gpru.openai.api import OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key, timeout=30)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key, timeout=30)
 
 
 def test_models() -> None:

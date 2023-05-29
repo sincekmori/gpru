@@ -4,8 +4,8 @@ from pathlib import Path
 from gpru.azure.preview_2022_06_01 import AzureOpenAiApi, Purpose
 
 endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
-api_key = os.environ["AZURE_OPENAI_API_KEY"]
-api = AzureOpenAiApi(endpoint, api_key)
+key = os.environ["AZURE_OPENAI_API_KEY"]
+api = AzureOpenAiApi(endpoint, key)
 
 file = api.upload_file(Path("/path/to/puppy.jsonl"), Purpose.FINE_TUNE)
 print(file.json(indent=2))

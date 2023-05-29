@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 fine_tune_event_list = api.list_fine_tune_events("ft-AF1WoRqd3aJAHsqc9NY7iL8F")
 print(fine_tune_event_list.json(indent=2))  # type: ignore[union-attr]

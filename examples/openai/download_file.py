@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 content = api.download_file(file_id="file-XjGxS3KTG0uNmNOK362iJua3")
 print(content)

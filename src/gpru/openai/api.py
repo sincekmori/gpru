@@ -1188,7 +1188,7 @@ class OpenAiApi:
 
     def __init__(
         self,
-        api_key: str,
+        key: str,
         organization_id: Optional[str] = None,
         timeout: Optional[TimeoutTypes] = DEFAULT_TIMEOUT_CONFIG,
         base_url: Optional[str] = "https://api.openai.com/v1",
@@ -1198,7 +1198,7 @@ class OpenAiApi:
 
         Parameters
         ----------
-        api_key : str
+        key : str
             API key for authentication, which can be found on the [API Keys page](https://platform.openai.com/account/api-keys).
         organization_id : Optional[str]
             Optional value used to specify which organization's subscription quota is
@@ -1214,11 +1214,11 @@ class OpenAiApi:
         Examples
         --------
         >>> import os
-        >>> api_key = os.environ["OPENAI_API_KEY"]
-        >>> api = OpenAiApi(api_key)
+        >>> key = os.environ["OPENAI_API_KEY"]
+        >>> api = OpenAiApi(key)
         """
         client_kwargs = {
-            "headers": self._build_base_headers(api_key, organization_id),
+            "headers": self._build_base_headers(key, organization_id),
             "http2": True,
             "base_url": base_url,
             "timeout": timeout,
@@ -1227,9 +1227,9 @@ class OpenAiApi:
         self._stream = stream_factory(ErrorResponse, **client_kwargs)
 
     def _build_base_headers(
-        self, api_key: str, organization_id: Optional[str]
+        self, key: str, organization_id: Optional[str]
     ) -> Dict[str, str]:
-        headers = {"Authorization": f"Bearer {api_key}"}
+        headers = {"Authorization": f"Bearer {key}"}
         if organization_id is not None:
             headers["OpenAI-Organization"] = organization_id
         return headers

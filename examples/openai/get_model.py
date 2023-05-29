@@ -2,8 +2,8 @@ import os
 
 from gpru.openai.api import OpenAiApi
 
-api_key = os.environ["OPENAI_API_KEY"]
-api = OpenAiApi(api_key)
+key = os.environ["OPENAI_API_KEY"]
+api = OpenAiApi(key)
 
 model = api.get_model(model_id="text-davinci-003")
 print(model.json(indent=2))
