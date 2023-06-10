@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
   "httpx[http2]>=0.24.1",
   "pydantic>=1.10.9",
+  "tenacity>=8.2.2",
 ]
 description = "Unofficial Python client library for the OpenAI and Azure OpenAI APIs"
 dynamic = ["version"]
@@ -166,7 +167,7 @@ strict = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = "httpx.*"
+module = ["httpx.*", "tenacity.*"]
 
 [tool.ruff]
 ignore = [

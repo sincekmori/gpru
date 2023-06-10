@@ -1,11 +1,19 @@
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Type, TypeVar
 
 import httpx
-from httpx._exceptions import HTTPError, StreamError
+from httpx._exceptions import HTTPError, ReadTimeout, StreamError
 from pydantic import BaseModel
 from pydantic.error_wrappers import ValidationError
+from tenacity import (
+    before_log,
+    retry,
+    retry_if_exception,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from gpru.__about__ import __version__
 from gpru._logger import logger
@@ -24,9 +32,23 @@ def _raise_api_error(error_response_model: Type[T], response: httpx.Response) ->
     raise ApiError(response.status_code, error)
 
 
+def _retry_condition(e: BaseException) -> bool:
+    if type(e) == ApiError:
+        return isinstance(e.error, ReadTimeout)
+
+    return False
+
+
 def request_factory(
     error_response_model: Type[T], **client_kwargs: Any
 ) -> Callable[..., httpx.Response]:
+    @retry(  # type: ignore[misc]
+        stop=stop_after_attempt(6),
+        wait=wait_random_exponential(min=1, max=20),
+        retry=retry_if_exception(_retry_condition),
+        before=before_log(logger, logging.DEBUG),
+        reraise=True,
+    )
     def request(method: str, path: str, **kwargs: Any) -> httpx.Response:
         try:
             with httpx.Client(**client_kwargs) as client:
@@ -41,7 +63,7 @@ def request_factory(
             logger.exception(_IMPLEMENTATION_ERROR)
             raise IncorrectImplementationError from e
 
-    return request
+    return request  # type: ignore[no-any-return]
 
 
 def _generate_chunk_models(
