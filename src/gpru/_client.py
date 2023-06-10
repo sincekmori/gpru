@@ -7,12 +7,18 @@ from httpx._exceptions import HTTPError, StreamError
 from pydantic import BaseModel
 from pydantic.error_wrappers import ValidationError
 
+from gpru.__about__ import __version__
+from gpru._logger import logger
 from gpru.exceptions import ApiError, IncorrectImplementationError
 
 T = TypeVar("T", bound=BaseModel)
 
+_API_FAILED = "API request failed."
+_IMPLEMENTATION_ERROR = f"Implementation error in gpru@{__version__}."
+
 
 def _raise_api_error(error_response_model: Type[T], response: httpx.Response) -> None:
+    logger.error(_API_FAILED)
     error_response = error_response_model.parse_obj(response.json())
     error = error_response.error if hasattr(error_response, "error") else error_response
     raise ApiError(response.status_code, error)
@@ -29,8 +35,10 @@ def request_factory(
                     _raise_api_error(error_response_model, response)
                 return response
         except HTTPError as e:
+            logger.exception(_API_FAILED)
             raise ApiError(None, e) from e
         except ValidationError as e:
+            logger.exception(_IMPLEMENTATION_ERROR)
             raise IncorrectImplementationError from e
 
     return request
@@ -67,8 +75,10 @@ def stream_factory(
                         _raise_api_error(error_response_model, response)
                     yield from _generate_chunk_models(response, response_model)
         except (HTTPError, StreamError) as e:
+            logger.exception(_API_FAILED)
             raise ApiError(None, e) from e
         except ValidationError as e:
+            logger.exception(_IMPLEMENTATION_ERROR)
             raise IncorrectImplementationError from e
 
     return stream

@@ -49,7 +49,7 @@ packages = ["src/gpru"]
 packages = ["src/gpru"]
 
 [tool.hatch.version]
-path = "src/gpru/__init__.py"
+path = "src/gpru/__about__.py"
 
 [tool.hatch.envs.default]
 dependencies = [
