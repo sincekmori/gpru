@@ -27,6 +27,7 @@ _IMPLEMENTATION_ERROR = f"Implementation error in gpru@{__version__}."
 
 def _raise_api_error(error_response_model: Type[T], response: httpx.Response) -> None:
     logger.error(_API_FAILED)
+    logger.debug(response.json())
     error_response = error_response_model.parse_obj(response.json())
     error = error_response.error if hasattr(error_response, "error") else error_response
     raise ApiError(response.status_code, error)
