@@ -182,6 +182,7 @@ ignore = [
   "FA100",
   "G004",
   "INP",
+  "SLOT000",
   "ERA",
   "PLR2004",
   "TRY300",
