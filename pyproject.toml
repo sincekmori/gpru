@@ -55,7 +55,7 @@ path = "src/gpru/__about__.py"
 [tool.hatch.envs.default]
 dependencies = [
   "coverage[toml]",
-  "datamodel-code-generator[http]<0.18", # https://docs.pydantic.dev/latest/datamodel_code_generator/
+  "datamodel-code-generator[http]", # https://docs.pydantic.dev/latest/datamodel_code_generator/
   "pre-commit",
   "pytest",
 ]
@@ -182,6 +182,7 @@ ignore = [
   "FA100",
   "G004",
   "INP",
+  "SLOT000",
   "ERA",
   "PLR2004",
   "TRY300",
@@ -201,6 +202,7 @@ max-complexity = 5
 
 [tool.ruff.per-file-ignores]
 "examples/**/*" = ["T201"]
+"examples/azure/**/*extension*.py" = ["E501"]
 "examples/openai/*_audio.py" = ["E501"]
 "tests/**/*" = ["D10"]
 

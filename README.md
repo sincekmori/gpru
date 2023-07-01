@@ -72,7 +72,7 @@ The following code replaces the same example with the [Azure OpenAI API](https:/
 ```python
 import os
 
-from gpru.azure.stable_2023_05_15 import (
+from gpru.azure.preview_2023_06_01 import (
     AzureOpenAiApi,
     ChatCompletionRequest,
     UserMessage,

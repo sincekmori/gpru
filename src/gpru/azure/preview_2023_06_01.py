@@ -1,4 +1,4 @@
-"""Client implementation for the Azure OpenAI API version `2023-05-15`."""
+"""Client implementation for the Azure OpenAI API version `2023-06-01-preview`."""
 
 from enum import Enum
 from pathlib import Path
@@ -6,15 +6,12 @@ from typing import Any, Dict, Generator, List, Optional, Union
 
 from httpx._config import DEFAULT_TIMEOUT_CONFIG
 from httpx._types import TimeoutTypes
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from gpru.azure._api import Api
-from gpru.azure._utils import deprecation_warning
-
-deprecation_warning(__name__)
 
 
-class ErrorCode(str, Enum):
+class AuthoringErrorCode(str, Enum):
     """
     Error codes as defined in the Microsoft REST guidelines.
 
@@ -49,9 +46,19 @@ class ErrorCode(str, Enum):
     """Validation of jsonl data failed."""
     FILE_IMPORT_FAILED = "fileImportFailed"
     """Import of file failed."""
+    TOO_MANY_REQUESTS = "tooManyRequests"
+    """
+    Too many requests.
+
+    Please retry later.
+    """
+    UNAUTHORIZED = "unauthorized"
+    """The current user/api key is not authorized for the operation."""
+    CONTENT_FILTER = "contentFilter"
+    """Image generation failed as a result of our safety system."""
 
 
-class InnerErrorCode(str, Enum):
+class AuthoringInnerErrorCode(str, Enum):
     """
     Inner error codes as defined in the Microsoft REST guidelines.
 
@@ -64,7 +71,7 @@ class InnerErrorCode(str, Enum):
     """The request data is invalid for this operation."""
 
 
-class InnerError(BaseModel):
+class AuthoringInnerError(BaseModel):
     """
     Inner error as defined in the Microsoft REST guidelines.
 
@@ -73,8 +80,8 @@ class InnerError(BaseModel):
     https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses
     """
 
-    code: Optional[InnerErrorCode] = None
-    innererror: Optional["InnerError"] = None
+    code: Optional[AuthoringInnerErrorCode] = None
+    innererror: Optional["AuthoringInnerError"] = None
 
 
 class AuthoringError(BaseModel):
@@ -86,21 +93,70 @@ class AuthoringError(BaseModel):
     https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses
     """
 
-    code: ErrorCode
+    code: AuthoringErrorCode
     message: str = Field(..., min_length=1)
     """The message of this error."""
     target: Optional[str] = None
     """The location where the error happened if available."""
     details: Optional[List["AuthoringError"]] = None
     """The error details if available."""
-    innererror: Optional[InnerError] = None
+    innererror: Optional[AuthoringInnerError] = None
 
 
-class InferenceError(BaseModel):
+class InferenceInnerErrorCode(str, Enum):
+    """Error codes for the inner error object."""
+
+    RESPONSIBLE_AI_POLICY_VIOLATION = "ResponsibleAIPolicyViolation"
+    """The prompt violated one of more content filter rules."""
+
+
+class Severity(str, Enum):
+    SAFE = "safe"
+    """General content or related content in generic or non-harmful contexts."""
+    LOW = "low"
+    """Harmful content at a low intensity and risk level."""
+    MEDIUM = "medium"
+    """Harmful content at a medium intensity and risk level."""
+    HIGH = "high"
+    """Harmful content at a high intensity and risk level."""
+
+
+class ContentFilterResult(BaseModel):
+    severity: Severity
+    filtered: bool
+
+
+class InferenceErrorBase(BaseModel):
     code: Optional[str] = None
     message: Optional[str] = None
+
+
+class ContentFilterResults(BaseModel):
+    """Information about the content filtering category (hate, sexual, violence,
+    self_harm), if it has been detected, as well as the severity level (very_low, low,
+    medium, high-scale that determines the intensity and risk level of harmful content)
+    and if it has been filtered or not.
+    """
+
+    sexual: Optional[ContentFilterResult] = None
+    violence: Optional[ContentFilterResult] = None
+    hate: Optional[ContentFilterResult] = None
+    self_harm: Optional[ContentFilterResult] = None
+    error: Optional[InferenceErrorBase] = None
+
+
+class InferenceInnerError(BaseModel):
+    """Inner error with additional details."""
+
+    code: Optional[InferenceInnerErrorCode] = None
+    content_filter_results: Optional[ContentFilterResults] = None
+
+
+class InferenceError(InferenceErrorBase):
+    requestid: Optional[str] = None
     param: Optional[str] = None
     type: Optional[str] = None
+    inner_error: Optional[InferenceInnerError] = None
 
 
 class ErrorResponse(BaseModel):
@@ -134,7 +190,7 @@ class State(str, Enum):
     """The state of a job or item."""
 
     NOT_RUNNING = "notRunning"
-    """The operation was created and is not queued to be processed in the future."""
+    """The operation was created and is queued to be processed in the future."""
     RUNNING = "running"
     """The operation has started to be processed."""
     SUCCEEDED = "succeeded"
@@ -501,6 +557,42 @@ class FineTuneRequest(BaseModel):
     """
 
 
+class ImageOperation(BaseModel):
+    """
+    Defines response after creating an operation to generate images.
+
+    It contains the status and the id of the operation.
+    """
+
+    status: State
+    id: str
+    """The Id of the asynchronous operation that can be used to query its status
+    later.
+    """
+
+
+class ImageSize(str, Enum):
+    """The desired size of the generated images."""
+
+    SQUARE_256 = "256x256"
+    SQUARE_512 = "512x512"
+    SQUARE_1024 = "1024x1024"
+
+
+class ImageRequest(BaseModel):
+    """Defines the request to create an operation to generate images."""
+
+    prompt: str = Field(..., min_length=1)
+    """A text description of the desired image(s)."""
+    n: Optional[int] = Field(1, ge=1)
+    """The number of images to generate."""
+    size: Optional[ImageSize] = ImageSize.SQUARE_1024
+    user: Optional[str] = None
+    """A unique identifier representing your end-user, which can help to monitor and
+    detect abuse.
+    """
+
+
 class Capabilities(BaseModel):
     """The capabilities of a base or fine tune model."""
 
@@ -597,6 +689,51 @@ class ModelList(BaseModel):
         return [d.id for d in self.data if d.id is not None]
 
 
+class ImageResult(BaseModel):
+    """The image url if successful, and an error otherwise."""
+
+    url: Optional[str] = None
+    """The URL that provides temporary access to download the generated image."""
+    error: Optional[AuthoringError] = None
+
+
+class OperationResult(BaseModel):
+    """The result of the operation if the operation succeeded."""
+
+    created: int
+    """A timestamp when this job or item was created (in unix epochs)."""
+    data: List[ImageResult]
+    """The result data of the operation, if successful."""
+
+
+class Operation(BaseModel):
+    """
+    The operation response containing the id and the status of the operation.
+
+    If successful, it contains data with the generated images and an error otherwise.
+    """
+
+    id: str
+    """The ID of the operation."""
+    created: int
+    """A timestamp when this job or item was created (in unix epochs)."""
+    expires: Optional[int] = None
+    """A timestamp when this operation and its associated images expire and will be
+    deleted (in unix epochs).
+    """
+    result: Optional[OperationResult] = None
+    """The result of the operation if the operation succeeded."""
+    status: State
+    error: Optional[AuthoringError] = None
+
+
+class PromptFilterResult(BaseModel):
+    """Content filtering results for a single prompt in the request."""
+
+    prompt_index: Optional[int] = None
+    content_filter_results: Optional[ContentFilterResults] = None
+
+
 class Logprobs(BaseModel):
     tokens: Optional[List[str]] = None
     token_logprobs: Optional[List[float]] = None
@@ -609,11 +746,12 @@ class Choice(BaseModel):
     index: Optional[int] = None
     logprobs: Optional[Logprobs] = None
     finish_reason: Optional[str] = None
+    content_filter_results: Optional[ContentFilterResults] = None
 
 
 class Usage(BaseModel):
-    completion_tokens: int
     prompt_tokens: int
+    completion_tokens: int
     total_tokens: int
 
 
@@ -622,6 +760,18 @@ class Completion(BaseModel):
     object: str
     created: int
     model: str
+    prompt_filter_results: Optional[List[PromptFilterResult]]
+    """
+    Content filtering results for zero or more prompts in the request.
+
+    In a streaming request, results for different prompts may arrive at different times
+    or in different orders.
+
+    Notes
+    -----
+    `prompt_filter_results` is required in the API specification, but as of July 1,
+    2023, `prompt_filter_results` is not included in API responses.
+    """
     choices: List[Choice]
     usage: Optional[Usage] = None
 
@@ -726,13 +876,6 @@ class CompletionRequest(BaseModel):
     tokens. The API will always return the logprob of the sampled token, so there may be
     up to logprobs+1 elements in the response. Minimum of 0 and maximum of 5 allowed.
     """
-    model: Optional[str] = None
-    """
-    ID of the model to use.
-
-    You can use the `list_models` method to see all of your available models, or see
-    `get_model` result for descriptions of them.
-    """
     suffix: Optional[str] = None
     """The suffix that comes after a completion of inserted text."""
     echo: Optional[bool] = False
@@ -825,13 +968,6 @@ class EmbeddingRequest(BaseModel):
     """
     input_type: Optional[str] = None
     """Input type of embedding search to use."""
-    model: Optional[str] = None
-    """
-    ID of the model to use.
-
-    You can use the Models_List operation to see all of your available models, or see
-    our Models_Get overview for descriptions of them.
-    """
 
 
 class Role(str, Enum):
@@ -840,6 +976,7 @@ class Role(str, Enum):
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
+    TOOL = "tool"
 
 
 class ChatCompletionMessage(BaseModel):
@@ -859,6 +996,7 @@ class ChatChoice(BaseModel):
     message: Optional[ChatCompletionMessage] = None
     delta: Optional[ChatCompletionDeltaMessage] = None
     finish_reason: Optional[str] = None
+    content_filter_results: Optional[ContentFilterResults] = None
 
 
 class ChatCompletion(BaseModel):
@@ -866,6 +1004,18 @@ class ChatCompletion(BaseModel):
     object: str
     created: int
     model: str
+    prompt_filter_results: Optional[List[PromptFilterResult]]
+    """
+    Content filtering results for zero or more prompts in the request.
+
+    In a streaming request, results for different prompts may arrive at different times
+    or in different orders.
+
+    Notes
+    -----
+    `prompt_filter_results` is required in the API specification, but as of July 1,
+    2023, `prompt_filter_results` is not included in API responses.
+    """
     choices: List[ChatChoice]
     usage: Optional[Usage] = None
 
@@ -933,6 +1083,16 @@ class Message(BaseModel):
     name: Optional[str] = None
     """The name of the user in a multi-user chat."""
 
+    @validator("role", always=True)
+    def role_must_be_other_than_tool(cls, v: Role) -> Role:  # noqa: N805
+        if v is Role.TOOL:
+            msg = (
+                "`Role.TOOL` is not allowed. "
+                "If you want to specify `Role.TOOL`, Use `ExtensionMessage` instead."
+            )
+            raise ValueError(msg)
+        return v
+
 
 class SystemMessage(Message):
     """A system message."""
@@ -979,9 +1139,7 @@ class AssistantMessage(Message):
         super().__init__(role=Role.ASSISTANT, content=content)
 
 
-class ChatCompletionRequest(BaseModel):
-    messages: List[Message] = Field(..., min_items=1)
-    """The messages to generate chat completions for, in the chat format."""
+class _ChatCompletionRequestCommon(BaseModel):
     temperature: Optional[float] = Field(1.0, ge=0.0, le=2.0)
     """
     What sampling temperature to use, between 0 and 2.
@@ -998,8 +1156,6 @@ class ChatCompletionRequest(BaseModel):
     So 0.1 means only the tokens comprising the top 10% probability mass are considered.
     We generally recommend altering this or `temperature` but not both.
     """
-    n: Optional[int] = Field(1, ge=1, le=128)
-    """How many chat completion choices to generate for each input message."""
     stream: Optional[bool] = False
     """
     If set, partial message deltas will be sent, like in ChatGPT.
@@ -1009,7 +1165,7 @@ class ChatCompletionRequest(BaseModel):
     """
     stop: Optional[Union[str, List[str]]] = None
     """Up to 4 sequences where the API will stop generating further tokens."""
-    max_tokens: Optional[int] = None
+    max_tokens: Optional[int] = 4096
     """
     The maximum number of tokens allowed for the generated answer.
 
@@ -1046,14 +1202,75 @@ class ChatCompletionRequest(BaseModel):
     """
 
 
+class ChatCompletionRequest(_ChatCompletionRequestCommon):
+    messages: List[Message] = Field(..., min_items=1)
+    """The messages to generate chat completions for, in the chat format."""
+    n: Optional[int] = Field(1, ge=1, le=128)
+    """How many chat completion choices to generate for each input message."""
+
+
+class ExtensionMessage(BaseModel):
+    """A chat message for extensions."""
+
+    index: Optional[int] = None
+    """The index of the message in the conversation."""
+    role: Role
+    """The role of the author of this message."""
+    recipient: Optional[str] = None
+    """
+    The recipient of the message in the format of <namespace>.<operation>.
+
+    Present if and only if the recipient is tool.
+    """
+    content: str
+    """The contents of the message."""
+    end_turn: Optional[bool] = None
+    """Whether the message ends the turn."""
+
+
+class ExtensionChatChoice(BaseModel):
+    index: Optional[int] = None
+    messages: Optional[List[ExtensionMessage]] = None
+    """The list of messages returned by the service."""
+    finish_reason: Optional[str] = None
+
+
+class ExtensionChatCompletion(BaseModel):
+    """The response of the extensions chat completions."""
+
+    id: str
+    object: str
+    created: int
+    model: str
+    choices: Optional[List[ExtensionChatChoice]] = None
+    usage: Optional[Usage] = None
+
+
+class DataSource(BaseModel):
+    """The data source to be used for the Azure OpenAI on your data feature."""
+
+    type: str
+    """The data source type."""
+    parameters: Optional[Dict[str, Any]] = None
+    """The parameters to be used for the data source in runtime."""
+
+
+class ExtensionChatCompletionRequest(_ChatCompletionRequestCommon):
+    """Request for the chat completions using extensions."""
+
+    messages: List[ExtensionMessage]
+    dataSources: Optional[List[DataSource]] = None  # noqa: N815
+    """The data sources to be used for the Azure OpenAI on your data feature."""
+
+
 class AzureOpenAiApi(Api):
     """
-    Client implementation for the Azure OpenAI API version `2023-05-15`.
+    Client implementation for the Azure OpenAI API version `2023-06-01-preview`.
 
     See Also
     --------
-    - [Official authoring API specification](https://github.com/Azure/azure-rest-api-specs/blob/main/specification/cognitiveservices/data-plane/AzureOpenAI/authoring/stable/2023-05-15/azureopenai.json)
-    - [Official inference API specification](https://github.com/Azure/azure-rest-api-specs/blob/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable/2023-05-15/inference.json)
+    - [Official authoring API specification](https://github.com/Azure/azure-rest-api-specs/blob/main/specification/cognitiveservices/data-plane/AzureOpenAI/authoring/preview/2023-06-01-preview/azureopenai.json)
+    - [Official inference API specification](https://github.com/Azure/azure-rest-api-specs/blob/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview/2023-06-01-preview/inference.json)
     """
 
     def __init__(
@@ -1064,7 +1281,7 @@ class AzureOpenAiApi(Api):
         timeout: Optional[TimeoutTypes] = DEFAULT_TIMEOUT_CONFIG,
     ) -> None:
         """
-        Initialize a client for the Azure OpenAI API version `2023-05-15`.
+        Initialize a client for the Azure OpenAI API version `2023-06-01-preview`.
 
         Notes
         -----
@@ -1098,7 +1315,7 @@ class AzureOpenAiApi(Api):
         super().__init__(
             ErrorResponse,
             endpoint,
-            "2023-05-15",
+            "2023-06-01-preview",
             key,
             ad_token,
             timeout,
@@ -1350,6 +1567,27 @@ class AzureOpenAiApi(Api):
         response = self._request("POST", f"/fine-tunes/{fine_tune_id}/cancel")
         return FineTune.parse_obj(response.json())
 
+    def create_images(self, image_request: ImageRequest) -> ImageOperation:
+        """
+        Generate a batch of images from a text caption.
+
+        Parameters
+        ----------
+        image_request : ImageRequest
+            The specification of the images that should be generated.
+
+        Returns
+        -------
+        ImageOperation
+            Created `ImageOperation` instance.
+        """
+        response = self._request(
+            "POST",
+            "/images/generations:submit",
+            json=image_request.dict(exclude_none=True),
+        )
+        return ImageOperation.parse_obj(response.json())
+
     def list_models(self) -> ModelList:
         """
         Get a list of all models that are accessible by the Azure OpenAI resource. These
@@ -1380,6 +1618,35 @@ class AzureOpenAiApi(Api):
         """
         response = self._request("GET", f"/models/{model_id}")
         return Model.parse_obj(response.json())
+
+    def get_image_operation(self, operation_id: str) -> Operation:
+        """
+        Return the status of the images operation.
+
+        Parameters
+        ----------
+        operation_id : str
+            ID of the operation.
+
+        Returns
+        -------
+        Operation
+            Specified `Operation` instance.
+        """
+        response = self._request("GET", f"/operations/images/{operation_id}")
+        return Operation.parse_obj(response.json())
+
+    def delete_image_operation(self, operation_id: str) -> None:
+        """
+        Delete an operation (if in terminal state) and all generated and user provided
+        images associated with the operation.
+
+        Parameters
+        ----------
+        operation_id : str
+            ID of the operation.
+        """
+        self._request("DELETE", f"/operations/images/{operation_id}")
 
     def create_completion(
         self, deployment_id: str, completion_request: CompletionRequest
@@ -1469,3 +1736,37 @@ class AzureOpenAiApi(Api):
 
         response = self._request(**kwargs)
         return ChatCompletion.parse_obj(response.json())
+
+    def create_extension_chat_completion(
+        self,
+        deployment_id: str,
+        extension_chat_completion_request: ExtensionChatCompletionRequest,
+    ) -> Union[Generator[ExtensionChatCompletion, None, None], ExtensionChatCompletion]:
+        """
+        Create a completion for the chat messages using extensions.
+
+        Parameters
+        ----------
+        deployment_id : str
+            Deployment id of the model which was deployed.
+        extension_chat_completion_request : ExtensionChatCompletionRequest
+            Specification of the extension chat completion to create.
+
+        Returns
+        -------
+        Union[Generator[ExtensionChatCompletion, None, None], ExtensionChatCompletion]:
+            Generator that streams the `ExtensionChatCompletion` if
+            `extension_chat_completion_request.stream` is `True`, or created
+            `ExtensionChatCompletion` instance otherwise.
+        """
+        kwargs = {
+            "method": "POST",
+            "path": f"/deployments/{deployment_id}/extensions/chat/completions",
+            "json": extension_chat_completion_request.dict(exclude_none=True),
+        }
+
+        if extension_chat_completion_request.stream is True:
+            return self._stream(ExtensionChatCompletion, **kwargs)  # type: ignore[return-value] # noqa: E501
+
+        response = self._request(**kwargs)
+        return ExtensionChatCompletion.parse_obj(response.json())
