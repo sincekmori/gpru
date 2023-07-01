@@ -760,12 +760,17 @@ class Completion(BaseModel):
     object: str
     created: int
     model: str
-    prompt_filter_results: List[PromptFilterResult]
+    prompt_filter_results: Optional[List[PromptFilterResult]]
     """
     Content filtering results for zero or more prompts in the request.
 
     In a streaming request, results for different prompts may arrive at different times
     or in different orders.
+
+    Notes
+    -----
+    `prompt_filter_results` is required in the API specification, but as of July 1,
+    2023, `prompt_filter_results` is not included in API responses.
     """
     choices: List[Choice]
     usage: Optional[Usage] = None
@@ -999,12 +1004,17 @@ class ChatCompletion(BaseModel):
     object: str
     created: int
     model: str
-    prompt_filter_results: List[PromptFilterResult]
+    prompt_filter_results: Optional[List[PromptFilterResult]]
     """
     Content filtering results for zero or more prompts in the request.
 
     In a streaming request, results for different prompts may arrive at different times
     or in different orders.
+
+    Notes
+    -----
+    `prompt_filter_results` is required in the API specification, but as of July 1,
+    2023, `prompt_filter_results` is not included in API responses.
     """
     choices: List[ChatChoice]
     usage: Optional[Usage] = None
@@ -1557,7 +1567,7 @@ class AzureOpenAiApi(Api):
         response = self._request("POST", f"/fine-tunes/{fine_tune_id}/cancel")
         return FineTune.parse_obj(response.json())
 
-    def generate_images(self, image_request: ImageRequest) -> ImageOperation:
+    def create_images(self, image_request: ImageRequest) -> ImageOperation:
         """
         Generate a batch of images from a text caption.
 
@@ -1569,7 +1579,7 @@ class AzureOpenAiApi(Api):
         Returns
         -------
         ImageOperation
-            Generated `ImageOperation` instance.
+            Created `ImageOperation` instance.
         """
         response = self._request(
             "POST",

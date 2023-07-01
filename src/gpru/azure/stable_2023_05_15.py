@@ -9,6 +9,9 @@ from httpx._types import TimeoutTypes
 from pydantic import BaseModel, Field
 
 from gpru.azure._api import Api
+from gpru.azure._utils import deprecation_warning
+
+deprecation_warning(__name__)
 
 
 class ErrorCode(str, Enum):

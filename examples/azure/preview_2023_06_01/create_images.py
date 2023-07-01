@@ -6,8 +6,8 @@ endpoint = os.environ["AZURE_OPENAI_API_ENDPOINT"]
 key = os.environ["AZURE_OPENAI_API_KEY"]
 api = AzureOpenAiApi(endpoint, key)
 
-req = ImageRequest(prompt="An avocado chair", size=ImageSize.SQUARE_512, n=3)
-image_operation = api.generate_images(req)
+req = ImageRequest(prompt="An avocado chair", size=ImageSize.SQUARE_1024, n=1)
+image_operation = api.create_images(req)
 print(image_operation.json(indent=2))
 # Example output:
 # {
