@@ -1,12 +1,13 @@
 import os
 
-from gpru.openai.api import EmbeddingRequest, OpenAiApi
+from gpru.openai.api import EmbeddingModel, EmbeddingRequest, OpenAiApi
 
 key = os.environ["OPENAI_API_KEY"]
 api = OpenAiApi(key)
 
 req = EmbeddingRequest(
-    model="text-embedding-ada-002", input="The food was delicious and the waiter..."
+    model=EmbeddingModel.TEXT_EMBEDDING_ADA_002,
+    input="The food was delicious and the waiter...",
 )
 embedding = api.create_embedding(req)
 print(embedding.json(indent=2))

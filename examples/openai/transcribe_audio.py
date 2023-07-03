@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
 
-from gpru.openai.api import OpenAiApi, TranscriptionRequest
+from gpru.openai.api import AudioModel, OpenAiApi, TranscriptionRequest
 
 key = os.environ["OPENAI_API_KEY"]
 api = OpenAiApi(key, timeout=60)
 
-req = TranscriptionRequest(file=Path("/path/to/audio.wav"), model="whisper-1")
+req = TranscriptionRequest(file=Path("/path/to/audio.wav"), model=AudioModel.WHISPER_1)
 transcription = api.transcribe_audio(req)
 print(transcription.json(indent=2, ensure_ascii=False))  # type: ignore[union-attr]
 # Example output:

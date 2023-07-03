@@ -1,12 +1,12 @@
 import os
 
-from gpru.openai.api import EditRequest, OpenAiApi
+from gpru.openai.api import EditModel, EditRequest, OpenAiApi
 
 key = os.environ["OPENAI_API_KEY"]
 api = OpenAiApi(key)
 
 req = EditRequest(
-    model="text-davinci-edit-001",
+    model=EditModel.TEXT_DAVINCI_EDIT_001,
     input="What day of the wek is it?",
     instruction="Fix the spelling mistakes",
 )
