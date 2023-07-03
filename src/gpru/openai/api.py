@@ -264,7 +264,7 @@ class ChatCompletionRequest(BaseModel):
     of selection; values like -100 or 100 should result in a ban or exclusive selection
     of the relevant token.
     """
-    user: Optional[str] = Field(None, example="user-1234")
+    user: Optional[str] = None
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor and
     detect abuse.
@@ -510,7 +510,7 @@ class CompletionRequest(BaseModel):
     As an example, you can pass `{"50256": -100}` to prevent the `<|endoftext|>` token
     from being generated.
     """
-    user: Optional[str] = Field(None, example="user-1234")
+    user: Optional[str] = None
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor and
     detect abuse.
@@ -769,7 +769,7 @@ class EmbeddingRequest(BaseModel):
     token arrays. Each input must not exceed the max input tokens for the model (8191
     tokens for `text-embedding-ada-002`).
     """
-    user: Optional[str] = Field(None, example="user-1234")
+    user: Optional[str] = None
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor and
     detect abuse.
