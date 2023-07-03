@@ -11,27 +11,35 @@ print(moderation.json(indent=2))
 # Example output:
 # {
 #   "id": "modr-5MWoLO",
-#   "model": "text-moderation-001",
+#   "model": "text-moderation-005",
 #   "results": [
 #     {
 #       "flagged": true,
 #       "categories": {
 #         "hate": false,
-#         "hate_threatening": true,
+#         "hate_threatening": false,
 #         "self_harm": false,
+#         "self_harm_instructions": false,
+#         "self_harm_intent": false,
 #         "sexual": false,
 #         "sexual_minors": false,
 #         "violence": true,
-#         "violence_graphic": false
+#         "violence_graphic": false,
+#         "harassment": false,
+#         "harassment_threatening": true
 #       },
 #       "category_scores": {
-#         "hate": 0.22714105248451233,
-#         "hate_threatening": 0.4132447838783264,
-#         "self_harm": 0.005232391878962517,
-#         "sexual": 0.01407341007143259,
-#         "sexual_minors": 0.0038522258400917053,
-#         "violence": 0.9223177433013916,
-#         "violence_graphic": 0.036865197122097015
+#         "hate": 0.010125076,
+#         "hate_threatening": 0.005791877,
+#         "self_harm": 1.4948828e-08,
+#         "self_harm_instructions": 2.6517654e-11,
+#         "self_harm_intent": 7.9006474e-10,
+#         "sexual": 1.1691392e-06,
+#         "sexual_minors": 5.2431027e-08,
+#         "violence": 0.990058,
+#         "violence_graphic": 4.3258656e-06,
+#         "harassment": 0.289753,
+#         "harassment_threatening": 0.621052
 #       }
 #     }
 #   ]

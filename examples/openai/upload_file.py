@@ -6,7 +6,9 @@ from gpru.openai.api import OpenAiApi
 key = os.environ["OPENAI_API_KEY"]
 api = OpenAiApi(key, timeout=60)
 
-file = api.upload_file(file=Path("/path/to/mydata.jsonl"), purpose="fine-tune")
+file = api.upload_file(
+    file=Path("/home/poyo/Downloads/file-for-fine-tune.jsonl"), purpose="fine-tune"
+)
 print(file.json(indent=2))
 # Example output:
 # {

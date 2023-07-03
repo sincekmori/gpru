@@ -46,12 +46,19 @@ Here is an example of [chat completion](https://platform.openai.com/docs/api-ref
 ```python
 import os
 
-from gpru.openai.api import ChatCompletionRequest, OpenAiApi, UserMessage
+from gpru.openai.api import (
+    ChatCompletionModel,
+    ChatCompletionRequest,
+    OpenAiApi,
+    UserMessage,
+)
 
 key = os.environ["OPENAI_API_KEY"]
 api = OpenAiApi(key)
 
-req = ChatCompletionRequest(model="gpt-3.5-turbo", messages=[UserMessage("Hello!")])
+req = ChatCompletionRequest(
+    model=ChatCompletionModel.GPT_35_TURBO, messages=[UserMessage("Hello!")]
+)
 chat_completion = api.create_chat_completion(req)
 print(chat_completion.content)
 # Greetings! How can I assist you today?
