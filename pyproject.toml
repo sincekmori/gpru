@@ -27,7 +27,7 @@ classifiers = [
 ]
 dependencies = [
   "httpx[http2]>=0.24.1",
-  "pydantic>=1.10.9",
+  "pydantic>=2.0.2",
   "tenacity>=8.2.2",
 ]
 description = "Unofficial Python client library for the OpenAI and Azure OpenAI APIs"
@@ -74,7 +74,7 @@ test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 
 [[tool.hatch.envs.all.matrix]]
-# If you are using pyenv, just run `pyenv global 3.7 3.8 3.9 3.10 3.11` beforehand.
+# If you are using pyenv, just run `pyenv shell 3.7 3.8 3.9 3.10 3.11` beforehand.
 python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
 [tool.hatch.envs.docs]
