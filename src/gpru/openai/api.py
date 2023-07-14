@@ -189,9 +189,9 @@ class ChatCompletionRequest(BaseModel):
     See the [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
     table for details on which models work with the Chat API.
     """
-    messages: List[Message] = Field(..., min_items=1)
+    messages: List[Message] = Field(..., min_length=1)
     """A list of messages comprising the conversation so far."""
-    functions: Optional[List[Function]] = Field(None, min_items=1)
+    functions: Optional[List[Function]] = Field(None, min_length=1)
     """A list of functions the model may generate JSON inputs for."""
     function_call: Union[str, Dict[str, str], None] = None
     """
@@ -1153,10 +1153,12 @@ class ModerationRequest(BaseModel):
     ] = ModerationModel.TEXT_MODERATION_LATEST
     """
     The default is `ModerationModel.TEXT_MODERATION_LATEST` which will be automatically
-    upgraded over time. This ensures you are always using our most accurate model. If
-    you use `ModerationModel.TEXT_MODERATION_STABLE`, we will provide advanced notice
-    before updating the model. Accuracy of `ModerationModel.TEXT_MODERATION_STABLE` may
-    be slightly lower than for `ModerationModel.TEXT_MODERATION_LATEST`.
+    upgraded over time.
+
+    This ensures you are always using our most accurate model. If you use
+    `ModerationModel.TEXT_MODERATION_STABLE`, we will provide advanced notice before
+    updating the model. Accuracy of `ModerationModel.TEXT_MODERATION_STABLE` may be
+    slightly lower than for `ModerationModel.TEXT_MODERATION_LATEST`.
     """
 
 
@@ -1297,14 +1299,14 @@ class OpenAiApi:
         kwargs = {
             "method": "POST",
             "path": "/chat/completions",
-            "json": req.dict(exclude_none=True),
+            "json": req.model_dump(exclude_none=True),
         }
 
         if req.stream is True:
             return self._stream(ChatCompletion, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return ChatCompletion.parse_obj(response.json())
+        return ChatCompletion.model_validate(response.json())
 
     def create_completion(
         self, req: CompletionRequest
@@ -1330,14 +1332,14 @@ class OpenAiApi:
         kwargs = {
             "method": "POST",
             "path": "/completions",
-            "json": req.dict(exclude_none=True),
+            "json": req.model_dump(exclude_none=True),
         }
 
         if req.stream is True:
             return self._stream(Completion, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return Completion.parse_obj(response.json())
+        return Completion.model_validate(response.json())
 
     def create_edit(self, req: EditRequest) -> Edit:
         """
@@ -1357,8 +1359,10 @@ class OpenAiApi:
         --------
         [Official API reference](https://platform.openai.com/docs/api-reference/edits/create)
         """
-        response = self._request("POST", "/edits", json=req.dict(exclude_none=True))
-        return Edit.parse_obj(response.json())
+        response = self._request(
+            "POST", "/edits", json=req.model_dump(exclude_none=True)
+        )
+        return Edit.model_validate(response.json())
 
     def create_images(self, req: ImageRequest) -> ImageList:
         """
@@ -1379,9 +1383,9 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/images/create)
         """
         response = self._request(
-            "POST", "/images/generations", json=req.dict(exclude_none=True)
+            "POST", "/images/generations", json=req.model_dump(exclude_none=True)
         )
-        return ImageList.parse_obj(response.json())
+        return ImageList.model_validate(response.json())
 
     def edit_image(self, req: ImageEditRequest) -> ImageList:
         """
@@ -1402,7 +1406,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/images/create-edit)
         """
         response = self._request("POST", "/images/edits", **kwargs_for_uploading(req))
-        return ImageList.parse_obj(response.json())
+        return ImageList.model_validate(response.json())
 
     def create_image_variation(self, req: ImageVariationRequest) -> ImageList:
         """
@@ -1425,7 +1429,7 @@ class OpenAiApi:
         response = self._request(
             "POST", "/images/variations", **kwargs_for_uploading(req)
         )
-        return ImageList.parse_obj(response.json())
+        return ImageList.model_validate(response.json())
 
     def create_embedding(self, req: EmbeddingRequest) -> Embedding:
         """
@@ -1446,9 +1450,9 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/embeddings/create)
         """
         response = self._request(
-            "POST", "/embeddings", json=req.dict(exclude_none=True)
+            "POST", "/embeddings", json=req.model_dump(exclude_none=True)
         )
-        return Embedding.parse_obj(response.json())
+        return Embedding.model_validate(response.json())
 
     def transcribe_audio(
         self, req: TranscriptionRequest
@@ -1480,10 +1484,10 @@ class OpenAiApi:
         )
 
         if req.response_format is TranscriptionFormat.JSON:
-            return TranscriptionJson.parse_obj(response.json())
+            return TranscriptionJson.model_validate(response.json())
 
         if req.response_format is TranscriptionFormat.VERBOSE_JSON:
-            return TranscriptionVerboseJson.parse_obj(response.json())
+            return TranscriptionVerboseJson.model_validate(response.json())
 
         # text, srt or vtt
         return str(response.text)
@@ -1516,10 +1520,10 @@ class OpenAiApi:
         )
 
         if req.response_format is TranscriptionFormat.JSON:
-            return TranscriptionJson.parse_obj(response.json())
+            return TranscriptionJson.model_validate(response.json())
 
         if req.response_format is TranscriptionFormat.VERBOSE_JSON:
-            return TranscriptionVerboseJson.parse_obj(response.json())
+            return TranscriptionVerboseJson.model_validate(response.json())
 
         # text, srt or vtt
         return str(response.text)
@@ -1538,7 +1542,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/files/list)
         """
         response = self._request("GET", "/files")
-        return FileList.parse_obj(response.json())
+        return FileList.model_validate(response.json())
 
     def upload_file(self, file: Path, purpose: str) -> File:
         """
@@ -1570,7 +1574,7 @@ class OpenAiApi:
         data = {"purpose": purpose}
         files = {"file": file.open("rb")}
         response = self._request("POST", "/files", data=data, files=files)
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def delete_file(self, file_id: str) -> DeletionResult:
         """
@@ -1591,7 +1595,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/files/delete)
         """
         response = self._request("DELETE", f"/files/{file_id}")
-        return DeletionResult.parse_obj(response.json())
+        return DeletionResult.model_validate(response.json())
 
     def get_file(self, file_id: str) -> File:
         """
@@ -1612,7 +1616,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/files/retrieve)
         """
         response = self._request("GET", f"/files/{file_id}")
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def download_file(self, file_id: str) -> str:
         """
@@ -1658,9 +1662,9 @@ class OpenAiApi:
         - [Learn more about Fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
         """
         response = self._request(
-            "POST", "/fine-tunes", json=req.dict(exclude_none=True)
+            "POST", "/fine-tunes", json=req.model_dump(exclude_none=True)
         )
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def list_fine_tunes(self) -> FineTuneList:
         """
@@ -1676,7 +1680,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/fine-tunes/list)
         """
         response = self._request("GET", "/fine-tunes")
-        return FineTuneList.parse_obj(response.json())
+        return FineTuneList.model_validate(response.json())
 
     def get_fine_tune(self, fine_tune_id: str) -> FineTune:
         """
@@ -1698,7 +1702,7 @@ class OpenAiApi:
         - [Learn more about Fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
         """
         response = self._request("GET", f"/fine-tunes/{fine_tune_id}")
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def cancel_fine_tune(self, fine_tune_id: str) -> FineTune:
         """
@@ -1719,7 +1723,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/fine-tunes/cancel)
         """
         response = self._request("POST", f"/fine-tunes/{fine_tune_id}/cancel")
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def list_fine_tune_events(
         self, fine_tune_id: str, stream: Optional[bool] = None
@@ -1754,7 +1758,7 @@ class OpenAiApi:
             return self._stream(FineTuneEvent, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return FineTuneEventList.parse_obj(response.json())
+        return FineTuneEventList.model_validate(response.json())
 
     def list_models(self) -> ModelList:
         """
@@ -1771,7 +1775,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/models/list)
         """
         response = self._request("GET", "/models")
-        return ModelList.parse_obj(response.json())
+        return ModelList.model_validate(response.json())
 
     def get_model(self, model_id: str) -> Model:
         """
@@ -1793,7 +1797,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/models/retrieve)
         """
         response = self._request("GET", f"/models/{model_id}")
-        return Model.parse_obj(response.json())
+        return Model.model_validate(response.json())
 
     def delete_model(self, model_id: str) -> DeletionResult:
         """
@@ -1814,7 +1818,7 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/fine-tunes/delete-model)
         """
         response = self._request("DELETE", f"/models/{model_id}")
-        return DeletionResult.parse_obj(response.json())
+        return DeletionResult.model_validate(response.json())
 
     def create_moderation(self, req: ModerationRequest) -> Moderation:
         """
@@ -1841,6 +1845,6 @@ class OpenAiApi:
         [Official API reference](https://platform.openai.com/docs/api-reference/moderations/create)
         """
         response = self._request(
-            "POST", "/moderations", json=req.dict(exclude_none=True)
+            "POST", "/moderations", json=req.model_dump(exclude_none=True)
         )
-        return Moderation.parse_obj(response.json())
+        return Moderation.model_validate(response.json())

@@ -1203,7 +1203,7 @@ class _ChatCompletionRequestCommon(BaseModel):
 
 
 class ChatCompletionRequest(_ChatCompletionRequestCommon):
-    messages: List[Message] = Field(..., min_items=1)
+    messages: List[Message] = Field(..., min_length=1)
     """The messages to generate chat completions for, in the chat format."""
     n: Optional[int] = Field(1, ge=1, le=128)
     """How many chat completion choices to generate for each input message."""
@@ -1335,7 +1335,7 @@ class AzureOpenAiApi(Api):
             `FileList` instance.
         """
         response = self._request("GET", "/files")
-        return FileList.parse_obj(response.json())
+        return FileList.model_validate(response.json())
 
     def upload_file(self, file: Path, purpose: Purpose) -> File:
         """
@@ -1358,7 +1358,7 @@ class AzureOpenAiApi(Api):
         data = {"purpose": purpose.value}
         files = {"file": file.open("rb")}
         response = self._request("POST", "/files", data=data, files=files)
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def get_file(self, file_id: str) -> File:
         """
@@ -1376,7 +1376,7 @@ class AzureOpenAiApi(Api):
             Specified `File` instance.
         """
         response = self._request("GET", f"/files/{file_id}")
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def delete_file(self, file_id: str) -> None:
         """
@@ -1441,7 +1441,7 @@ class AzureOpenAiApi(Api):
                 "purpose": purpose.value,
             },
         )
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def list_fine_tunes(self) -> FineTuneList:
         """
@@ -1457,7 +1457,7 @@ class AzureOpenAiApi(Api):
             `FineTuneList` instance.
         """
         response = self._request("GET", "/fine-tunes")
-        return FineTuneList.parse_obj(response.json())
+        return FineTuneList.model_validate(response.json())
 
     def create_fine_tune(self, fine_tune_request: FineTuneRequest) -> FineTune:
         """
@@ -1481,9 +1481,9 @@ class AzureOpenAiApi(Api):
             Created `FineTune` instance.
         """
         response = self._request(
-            "POST", "/fine-tunes", json=fine_tune_request.dict(exclude_none=True)
+            "POST", "/fine-tunes", json=fine_tune_request.model_dump(exclude_none=True)
         )
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def get_fine_tune(self, fine_tune_id: str) -> FineTune:
         """
@@ -1503,7 +1503,7 @@ class AzureOpenAiApi(Api):
             Specified `FineTune` instance.
         """
         response = self._request("GET", f"/fine-tunes/{fine_tune_id}")
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def delete_fine_tune(self, fine_tune_id: str) -> None:
         """
@@ -1547,7 +1547,7 @@ class AzureOpenAiApi(Api):
             return self._stream(FineTuneEvent, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return FineTuneEventList.parse_obj(response.json())
+        return FineTuneEventList.model_validate(response.json())
 
     def cancel_fine_tune(self, fine_tune_id: str) -> FineTune:
         """
@@ -1565,7 +1565,7 @@ class AzureOpenAiApi(Api):
             Canceled `FineTune` instance.
         """
         response = self._request("POST", f"/fine-tunes/{fine_tune_id}/cancel")
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def create_images(self, image_request: ImageRequest) -> ImageOperation:
         """
@@ -1584,9 +1584,9 @@ class AzureOpenAiApi(Api):
         response = self._request(
             "POST",
             "/images/generations:submit",
-            json=image_request.dict(exclude_none=True),
+            json=image_request.model_dump(exclude_none=True),
         )
-        return ImageOperation.parse_obj(response.json())
+        return ImageOperation.model_validate(response.json())
 
     def list_models(self) -> ModelList:
         """
@@ -1600,7 +1600,7 @@ class AzureOpenAiApi(Api):
             `ModelList` instance.
         """
         response = self._request("GET", "/models")
-        return ModelList.parse_obj(response.json())
+        return ModelList.model_validate(response.json())
 
     def get_model(self, model_id: str) -> Model:
         """
@@ -1617,7 +1617,7 @@ class AzureOpenAiApi(Api):
             Specified `Model` instance.
         """
         response = self._request("GET", f"/models/{model_id}")
-        return Model.parse_obj(response.json())
+        return Model.model_validate(response.json())
 
     def get_image_operation(self, operation_id: str) -> Operation:
         """
@@ -1634,7 +1634,7 @@ class AzureOpenAiApi(Api):
             Specified `Operation` instance.
         """
         response = self._request("GET", f"/operations/images/{operation_id}")
-        return Operation.parse_obj(response.json())
+        return Operation.model_validate(response.json())
 
     def delete_image_operation(self, operation_id: str) -> None:
         """
@@ -1670,14 +1670,14 @@ class AzureOpenAiApi(Api):
         kwargs = {
             "method": "POST",
             "path": f"/deployments/{deployment_id}/completions",
-            "json": completion_request.dict(exclude_none=True),
+            "json": completion_request.model_dump(exclude_none=True),
         }
 
         if completion_request.stream is True:
             return self._stream(Completion, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return Completion.parse_obj(response.json())
+        return Completion.model_validate(response.json())
 
     def create_embedding(
         self, deployment_id: str, embedding_request: EmbeddingRequest
@@ -1701,9 +1701,9 @@ class AzureOpenAiApi(Api):
         response = self._request(
             "POST",
             f"/deployments/{deployment_id}/embeddings",
-            json=embedding_request.dict(exclude_none=True),
+            json=embedding_request.model_dump(exclude_none=True),
         )
-        return Embedding.parse_obj(response.json())
+        return Embedding.model_validate(response.json())
 
     def create_chat_completion(
         self, deployment_id: str, chat_completion_request: ChatCompletionRequest
@@ -1728,14 +1728,14 @@ class AzureOpenAiApi(Api):
         kwargs = {
             "method": "POST",
             "path": f"/deployments/{deployment_id}/chat/completions",
-            "json": chat_completion_request.dict(exclude_none=True),
+            "json": chat_completion_request.model_dump(exclude_none=True),
         }
 
         if chat_completion_request.stream is True:
             return self._stream(ChatCompletion, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return ChatCompletion.parse_obj(response.json())
+        return ChatCompletion.model_validate(response.json())
 
     def create_extension_chat_completion(
         self,
@@ -1762,11 +1762,11 @@ class AzureOpenAiApi(Api):
         kwargs = {
             "method": "POST",
             "path": f"/deployments/{deployment_id}/extensions/chat/completions",
-            "json": extension_chat_completion_request.dict(exclude_none=True),
+            "json": extension_chat_completion_request.model_dump(exclude_none=True),
         }
 
         if extension_chat_completion_request.stream is True:
             return self._stream(ExtensionChatCompletion, **kwargs)  # type: ignore[return-value] # noqa: E501
 
         response = self._request(**kwargs)
-        return ExtensionChatCompletion.parse_obj(response.json())
+        return ExtensionChatCompletion.model_validate(response.json())

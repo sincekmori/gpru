@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Generator, Type, TypeVar
 import httpx
 from httpx._exceptions import HTTPError, ReadTimeout, StreamError
 from pydantic import BaseModel
-from pydantic.error_wrappers import ValidationError
+from pydantic_core import ValidationError
 from tenacity import (
     before_log,
     retry,
@@ -28,7 +28,7 @@ _IMPLEMENTATION_ERROR = f"Implementation error in gpru@{__version__}."
 def _raise_api_error(error_response_model: Type[T], response: httpx.Response) -> None:
     logger.error(_API_FAILED)
     logger.debug(response.json())
-    error_response = error_response_model.parse_obj(response.json())
+    error_response = error_response_model.model_validate(response.json())
     error = error_response.error if hasattr(error_response, "error") else error_response
     raise ApiError(response.status_code, error)
 
@@ -110,7 +110,7 @@ def stream_factory(
 def kwargs_for_uploading(request_model: T) -> Dict[str, Any]:
     data: Dict[str, Any] = {}
     files: Dict[str, Any] = {}
-    for k, v in request_model.dict(exclude_none=True).items():
+    for k, v in request_model.model_dump(exclude_none=True).items():
         if isinstance(v, Path):
             files[k] = v.open("rb")
         else:

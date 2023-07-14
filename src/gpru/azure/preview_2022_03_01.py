@@ -734,7 +734,7 @@ class AzureOpenAiApi(Api):
             `DeploymentList` instance.
         """
         response = self._request("GET", "/deployments")
-        return DeploymentList.parse_obj(response.json())
+        return DeploymentList.model_validate(response.json())
 
     def create_deployment(self, deployment: Deployment) -> Deployment:
         """
@@ -753,9 +753,9 @@ class AzureOpenAiApi(Api):
             Created `Deployment` instance.
         """
         response = self._request(
-            "POST", "/deployments", json=deployment.dict(exclude_none=True)
+            "POST", "/deployments", json=deployment.model_dump(exclude_none=True)
         )
-        return Deployment.parse_obj(response.json())
+        return Deployment.model_validate(response.json())
 
     def get_deployment(self, deployment_id: str) -> Deployment:
         """
@@ -772,7 +772,7 @@ class AzureOpenAiApi(Api):
             Specified `Deployment` instance.
         """
         response = self._request("GET", f"/deployments/{deployment_id}")
-        return Deployment.parse_obj(response.json())
+        return Deployment.model_validate(response.json())
 
     def update_deployment(
         self,
@@ -800,14 +800,14 @@ class AzureOpenAiApi(Api):
         """
         data: Dict[str, Any] = {"model": model}
         if scale_settings is not None:
-            data["scale_settings"] = scale_settings.dict(exclude_none=True)
+            data["scale_settings"] = scale_settings.model_dump(exclude_none=True)
         response = self._request(
             "PATCH",
             f"/deployments/{deployment_id}",
             headers={"Content-Type": "application/merge-patch+json"},
             data=data,
         )
-        return Deployment.parse_obj(response.json())
+        return Deployment.model_validate(response.json())
 
     def delete_deployment(self, deployment_id: str) -> None:
         """
@@ -834,7 +834,7 @@ class AzureOpenAiApi(Api):
             `FileList` instance.
         """
         response = self._request("GET", "/files")
-        return FileList.parse_obj(response.json())
+        return FileList.model_validate(response.json())
 
     def upload_file(self, file: Path, purpose: Purpose) -> File:
         """
@@ -857,7 +857,7 @@ class AzureOpenAiApi(Api):
         data = {"purpose": purpose.value}
         files = {"file": file.open("rb")}
         response = self._request("POST", "/files", data=data, files=files)
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def get_file(self, file_id: str) -> File:
         """
@@ -875,7 +875,7 @@ class AzureOpenAiApi(Api):
             Specified `File` instance.
         """
         response = self._request("GET", f"/files/{file_id}")
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def delete_file(self, file_id: str) -> None:
         """
@@ -940,7 +940,7 @@ class AzureOpenAiApi(Api):
                 "purpose": purpose.value,
             },
         )
-        return File.parse_obj(response.json())
+        return File.model_validate(response.json())
 
     def list_fine_tunes(self) -> FineTuneList:
         """
@@ -956,7 +956,7 @@ class AzureOpenAiApi(Api):
             `FineTuneList` instance.
         """
         response = self._request("GET", "/fine-tunes")
-        return FineTuneList.parse_obj(response.json())
+        return FineTuneList.model_validate(response.json())
 
     def create_fine_tune(self, fine_tune_request: FineTuneRequest) -> FineTune:
         """
@@ -980,9 +980,9 @@ class AzureOpenAiApi(Api):
             Created `FineTune` instance.
         """
         response = self._request(
-            "POST", "/fine-tunes", json=fine_tune_request.dict(exclude_none=True)
+            "POST", "/fine-tunes", json=fine_tune_request.model_dump(exclude_none=True)
         )
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def get_fine_tune(self, fine_tune_id: str) -> FineTune:
         """
@@ -1002,7 +1002,7 @@ class AzureOpenAiApi(Api):
             Specified `FineTune` instance.
         """
         response = self._request("GET", f"/fine-tunes/{fine_tune_id}")
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def delete_fine_tune(self, fine_tune_id: str) -> None:
         """
@@ -1046,7 +1046,7 @@ class AzureOpenAiApi(Api):
             return self._stream(FineTuneEvent, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return FineTuneEventList.parse_obj(response.json())
+        return FineTuneEventList.model_validate(response.json())
 
     def cancel_fine_tune(self, fine_tune_id: str) -> FineTune:
         """
@@ -1064,7 +1064,7 @@ class AzureOpenAiApi(Api):
             Canceled `FineTune` instance.
         """
         response = self._request("POST", f"/fine-tunes/{fine_tune_id}/cancel")
-        return FineTune.parse_obj(response.json())
+        return FineTune.model_validate(response.json())
 
     def list_models(self) -> ModelList:
         """
@@ -1078,7 +1078,7 @@ class AzureOpenAiApi(Api):
             `ModelList` instance.
         """
         response = self._request("GET", "/models")
-        return ModelList.parse_obj(response.json())
+        return ModelList.model_validate(response.json())
 
     def get_model(self, model_id: str) -> Model:
         """
@@ -1095,7 +1095,7 @@ class AzureOpenAiApi(Api):
             Specified `Model` instance.
         """
         response = self._request("GET", f"/models/{model_id}")
-        return Model.parse_obj(response.json())
+        return Model.model_validate(response.json())
 
     def create_completion(
         self, deployment_id: str, completion_request: CompletionRequest
@@ -1119,11 +1119,11 @@ class AzureOpenAiApi(Api):
         kwargs = {
             "method": "POST",
             "path": f"/deployments/{deployment_id}/completions",
-            "json": completion_request.dict(exclude_none=True),
+            "json": completion_request.model_dump(exclude_none=True),
         }
 
         if completion_request.stream is True:
             return self._stream(Completion, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
-        return Completion.parse_obj(response.json())
+        return Completion.model_validate(response.json())
