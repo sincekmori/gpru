@@ -16,7 +16,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -27,8 +26,8 @@ classifiers = [
 ]
 dependencies = [
   "httpx[http2]>=0.24.1",
-  "pydantic>=2.0.2",
-  "tenacity>=8.2.2",
+  "pydantic>=2.3.0",
+  "tenacity>=8.2.3",
 ]
 description = "Unofficial Python client library for the OpenAI and Azure OpenAI APIs"
 dynamic = ["version"]
@@ -36,7 +35,7 @@ keywords = ["openai", "azure", "chatgpt", "gpt", "gpt-3", "gpt-4", "asyncio", "p
 license = "MIT"
 name = "gpru"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 [project.urls]
 Documentation = "https://github.com/sincekmori/gpru#readme"
@@ -69,13 +68,13 @@ cov-report = [
   "- coverage combine",
   "coverage report --show-missing",
 ]
-gen-model = "datamodel-codegen --openapi-scopes=schemas --snake-case-field --use-schema-description --use-field-description --reuse-model --capitalise-enum-members --use-subclass-enum --target-python-version=3.7 --wrap-string-literal --output=models.py {args:}"
+gen-model = "datamodel-codegen --openapi-scopes=schemas --snake-case-field --use-schema-description --use-field-description --reuse-model --capitalise-enum-members --use-subclass-enum --target-python-version=3.8 --wrap-string-literal --output=models.py {args:}"
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 
 [[tool.hatch.envs.all.matrix]]
-# If you are using pyenv, just run `pyenv shell 3.7 3.8 3.9 3.10 3.11` beforehand.
-python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+# If you are using pyenv, just run `pyenv shell 3.8 3.9 3.10 3.11` beforehand.
+python = ["3.8", "3.9", "3.10", "3.11"]
 
 [tool.hatch.envs.docs]
 dependencies = [
@@ -143,7 +142,7 @@ filterwarnings = [
 
 [tool.black]
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310", "py311"]
+target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.docformatter]
 close-quotes-on-newline = true
@@ -189,7 +188,7 @@ ignore = [
 ]
 line-length = 88
 select = ["ALL"]
-target-version = "py37"
+target-version = "py38"
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
