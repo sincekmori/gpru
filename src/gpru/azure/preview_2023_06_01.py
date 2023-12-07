@@ -1766,7 +1766,7 @@ class AzureOpenAiApi(Api):
         }
 
         if extension_chat_completion_request.stream is True:
-            return self._stream(ExtensionChatCompletion, **kwargs)  # type: ignore[return-value] # noqa: E501
+            return self._stream(ExtensionChatCompletion, **kwargs)  # type: ignore[return-value]
 
         response = self._request(**kwargs)
         return ExtensionChatCompletion.model_validate(response.json())
